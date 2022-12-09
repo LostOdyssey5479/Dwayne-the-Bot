@@ -15,7 +15,7 @@ print("7. Print Driver Financial Listing.")
 print("8. Your report -- (add description here)")
 print("9. Quit Program.")
 
-Ans = input("Enter choice (1-9)")
+Ans = input("Enter choice (1-9): ")
 
 while True:
     if Ans == "1":
