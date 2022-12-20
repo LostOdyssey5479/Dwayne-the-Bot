@@ -7,6 +7,7 @@ import FormatValues as fV
 
 ProDay = datetime.today()
 ProDay = fV.FDateS(ProDay)
+JustDay = datetime.today().day
 
 f = open("Defaults.dat", "r")
 
@@ -18,6 +19,7 @@ WEEK_RENT_FEE = float(f.readline())
 HST_RATE = float(f.readline())
 NEXT_PAYMENT_ID = int(f.readline())
 NEXT_RENTAL_ID = int(f.readline())
+MONTH_PAY_VAL = int(f.readline())
 
 f.close()
 
@@ -25,7 +27,8 @@ f.close()
 def rental_tracker():
 
     global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID, \
-        NEXT_RENTAL_ID, ProDay
+        NEXT_RENTAL_ID, ProDay, MONTH_PAY_VAL
+
 
     RentCost = 0
 
@@ -37,7 +40,15 @@ def rental_tracker():
     print("-----------------------------------------")
     print("     Please Enter Rental Information")
     print()
-    DriverNum = input("Driver number of renter: ")
+
+    while True:
+        DriverNum = input("Driver number of renter: ")
+        if fV.EmptyVal(DriverNum) is True:
+            print("Please enter your driver number")
+        elif fV.ValSetNum(DriverNum) is False:
+            print("Driver number is numeric digits only. Please Re-Enter")
+        else:
+            break
 
     while True:
         RentStart = input("Start date of rental(YYYY-MM-DD): ")
@@ -143,6 +154,7 @@ def rental_tracker():
     e.write("{}\n".format(str(HST_RATE)))
     e.write("{}\n".format(str(NEXT_PAYMENT_ID)))
     e.write("{}\n".format(str(NEXT_RENTAL_ID)))
+    e.write("{}\n".format(str(MONTH_PAY_VAL)))
 
     e.close()
 
@@ -154,8 +166,8 @@ def rental_tracker():
 
 def view_defaults_file():
 
-
-    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID
+    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID, \
+        NEXT_RENTAL_ID, ProDay, MONTH_PAY_VAL
 
     print("            HAB Taxi Service")
     print("            ~~~~~~~~~~~~~~~~")
@@ -181,6 +193,7 @@ def view_defaults_file():
     d.write("{}\n".format(str(HST_RATE)))
     d.write("{}\n".format(str(NEXT_PAYMENT_ID)))
     d.write("{}\n".format(str(NEXT_RENTAL_ID)))
+    d.write("{}\n".format(str(MONTH_PAY_VAL)))
 
     d.close()
 
@@ -192,7 +205,9 @@ def view_defaults_file():
 
 def record_employee_payment():
 
-    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID
+    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID, \
+        NEXT_RENTAL_ID, ProDay, MONTH_PAY_VAL
+
     PaymentDate = datetime.today()
     PaymentDate = fV.FDateS(PaymentDate)
 
@@ -280,14 +295,16 @@ def record_employee_payment():
     p.write("{}\n".format(str(HST_RATE)))
     p.write("{}\n".format(str(NEXT_PAYMENT_ID)))
     p.write("{}\n".format(str(NEXT_RENTAL_ID)))
+    p.write("{}\n".format(str(MONTH_PAY_VAL)))
 
     p.close()
 
 
 def new_driver():
 
+    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID, \
+        NEXT_RENTAL_ID, ProDay, MONTH_PAY_VAL
 
-    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID
     DriverNum = NEXT_DRIVER_NUM
 
     BalDue = 0
@@ -424,6 +441,7 @@ def new_driver():
     e.write("{}\n".format(str(HST_RATE)))
     e.write("{}\n".format(str(NEXT_PAYMENT_ID)))
     e.write("{}\n".format(str(NEXT_RENTAL_ID)))
+    e.write("{}\n".format(str(MONTH_PAY_VAL)))
 
     e.close()
 
@@ -439,6 +457,74 @@ def new_driver():
 
 def main():
     # This function represents the main menu and allows user to navigate between the other servicing functions
+
+    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID, \
+        NEXT_RENTAL_ID, ProDay, MONTH_PAY_VAL, JustDay
+
+
+    if JustDay == 1 and MONTH_PAY_VAL == 0:
+        MONTH_PAY_VAL += 1
+        TransDesc = "Monthly Stand Fees"
+        Hst = MONTH_STAND_FEE * HST_RATE
+        Total = Hst + MONTH_STAND_FEE
+
+        eR = open("EmployeeRec.dat", "r")
+
+        for Drivers in eR:
+
+            Driver = Drivers.split(", ")
+
+            DriverNum = int(Driver[0].strip())
+            OwnCar = str(Driver[9].strip())
+
+            if OwnCar == "N":
+                r = open("Revenue.dat", "a")
+
+                r.write("{}, ".format(str(NEXT_TRANS_NUM)))
+                r.write("{}, ".format(str(ProDay)))
+                r.write("{}, ".format(str(TransDesc)))
+                r.write("{}, ".format(str(DriverNum)))
+                r.write("{}, ".format(str(MONTH_STAND_FEE)))
+                r.write("{}, ".format(str(Hst)))
+                r.write("{}\n".format(str(Total)))
+
+                r.close()
+
+                NEXT_TRANS_NUM += 1
+
+                d = open("Defaults.dat", "w")
+
+                d.write("{}\n".format(str(NEXT_TRANS_NUM)))
+                d.write("{}\n".format(str(NEXT_DRIVER_NUM)))
+                d.write("{}\n".format(str(MONTH_STAND_FEE)))
+                d.write("{}\n".format(str(DAY_RENT_FEE)))
+                d.write("{}\n".format(str(WEEK_RENT_FEE)))
+                d.write("{}\n".format(str(HST_RATE)))
+                d.write("{}\n".format(str(NEXT_PAYMENT_ID)))
+                d.write("{}\n".format(str(NEXT_RENTAL_ID)))
+                d.write("{}\n".format(str(MONTH_PAY_VAL)))
+
+                d.close()
+
+    if JustDay == 2 and MONTH_PAY_VAL == 1:
+        MONTH_PAY_VAL -= 1
+
+        e = open("Defaults.dat", "w")
+
+        e.write("{}\n".format(str(NEXT_TRANS_NUM)))
+        e.write("{}\n".format(str(NEXT_DRIVER_NUM)))
+        e.write("{}\n".format(str(MONTH_STAND_FEE)))
+        e.write("{}\n".format(str(DAY_RENT_FEE)))
+        e.write("{}\n".format(str(WEEK_RENT_FEE)))
+        e.write("{}\n".format(str(HST_RATE)))
+        e.write("{}\n".format(str(NEXT_PAYMENT_ID)))
+        e.write("{}\n".format(str(NEXT_RENTAL_ID)))
+        e.write("{}\n".format(str(MONTH_PAY_VAL)))
+
+        e.close()
+
+
+
     print("---HAB Taxi Services---")
     print("Company Services System")
     print("")
