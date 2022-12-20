@@ -2,7 +2,7 @@
 # AUTHOR JONATHAN IVANY, TYLER STUCKLESS, ALEXANDER GILLESPIE
 # DATE: 2022-12-12
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import FormatValues as fV
 
 ProDay = datetime.today()
@@ -17,8 +17,177 @@ DAY_RENT_FEE = float(f.readline())
 WEEK_RENT_FEE = float(f.readline())
 HST_RATE = float(f.readline())
 NEXT_PAYMENT_ID = int(f.readline())
+NEXT_RENTAL_ID = int(f.readline())
 
 f.close()
+
+
+def rental_tracker():
+
+    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID, \
+        NEXT_RENTAL_ID, ProDay
+
+    RentCost = 0
+
+    TransactDesc = "Rental"
+
+    print()
+    print("_________________________________________")
+    print("||   HAB Taxi Service Rental Tracker   ||  ")
+    print("-----------------------------------------")
+    print("     Please Enter Rental Information")
+    print()
+    DriverNum = input("Driver number of renter: ")
+
+    while True:
+        RentStart = input("Start date of rental(YYYY-MM-DD): ")
+        try:
+            RentStart = datetime.strptime(RentStart, "%Y-%m-%d")
+            break
+        except ValueError:
+            print("Invalid date format, please try again.")
+
+    while True:
+        CarNum = input("Car number 1, 2, 3, or 4: ")
+        if fV.ValSetNum(CarNum) is False:
+            print("Our cars are labeled 1 to 4, please enter digits only.")
+        else:
+            break
+
+    while True:
+        RentType = input("For a Day or a Week?(D,W): ").upper()
+        if RentType == "D" or RentType == "DAY":
+            RentType = "Day"
+            RentDays = 1
+            RentCost += DAY_RENT_FEE
+            RentEnd = RentStart + timedelta(days=1)
+            break
+        elif RentType == "W" or RentType == "WEEK":
+            RentType = "Week"
+            RentDays = 7
+            RentCost += WEEK_RENT_FEE
+            RentEnd = RentStart + timedelta(days=7)
+            break
+        else:
+            print("You must enter day or d, week or w")
+
+    HST = RentCost * HST_RATE
+    TotalCost = RentCost + HST
+
+    print()
+    print(" " * 20, "HAB TAXI SERVICES")
+    print(" " * 15, "~" * 26)
+    print(" " * 21, "RENTAL RECEIPT")
+    print()
+    print(f"    RENTAL ID #:{NEXT_RENTAL_ID:^6d}")
+    print(" " * 3, "=" * 18)
+    print(f"    DRIVER ID #: {DriverNum:^6s}               DATE: {ProDay}")
+    print(" " * 3, "=" * 50)
+    print(f"    START DATE:                             {fV.FDateS(RentStart)}")
+    print(f"    END DATE:                               {fV.FDateS(RentEnd)}")
+    print(f"    NUMBER OF DAYS:                                 {RentDays:>2d}")
+    print(" " * 3, "-" * 50)
+    print(f"    COST PER DAY:                            {fV.FDollar2(DAY_RENT_FEE):>9s}")
+    print(f"    COST PER WEEK:                           {fV.FDollar2(WEEK_RENT_FEE):>9s}")
+    print(" " * 3, "=" * 50)
+    print(f"    RENTAL COST:                            {fV.FDollar2(RentCost):>10s}")
+    print(f"    HST:                                       {fV.FDollar2(HST):>7s}")
+    print(" " * 3, "-" * 50)
+    print(f"    RENTAL TOTAL:                           {fV.FDollar2(TotalCost):>10s}")
+
+    r = open("Rental.dat", "a")
+
+    r.write("{}, ".format(str(NEXT_RENTAL_ID)))
+    r.write("{}, ".format(str(DriverNum)))
+    r.write("{}, ".format(str(RentStart)))
+    r.write("{}, ".format(str(CarNum)))
+    r.write("{}, ".format(str(RentType)))
+    r.write("{}, ".format(str(RentDays)))
+    r.write("{}, ".format(str(RentCost)))
+    r.write("{}, ".format(str(HST)))
+    r.write("{}\n".format(str(TotalCost)))
+
+    r.close()
+
+    print()
+    print(f"              Rental ID: {NEXT_RENTAL_ID} for {CarNum} to driver {DriverNum}")
+    print("                 Has been successfully saved")
+
+    NEXT_RENTAL_ID += 1
+
+    r = open("Revenue.dat", "a")
+
+    r.write("{}, ".format(str(NEXT_TRANS_NUM)))
+    r.write("{}, ".format(str(ProDay)))
+    r.write("{}, ".format(str(TransactDesc)))
+    r.write("{}, ".format(str(DriverNum)))
+    r.write("{}, ".format(str(RentCost)))
+    r.write("{}, ".format(str(HST)))
+    r.write("{}\n".format(str(TotalCost)))
+
+    r.close()
+
+    print()
+    print(f"                   Transaction {NEXT_TRANS_NUM} Success")
+    print()
+
+    NEXT_TRANS_NUM += 1
+
+    e = open("Defaults.dat", "w")
+
+    e.write("{}\n".format(str(NEXT_TRANS_NUM)))
+    e.write("{}\n".format(str(NEXT_DRIVER_NUM)))
+    e.write("{}\n".format(str(MONTH_STAND_FEE)))
+    e.write("{}\n".format(str(DAY_RENT_FEE)))
+    e.write("{}\n".format(str(WEEK_RENT_FEE)))
+    e.write("{}\n".format(str(HST_RATE)))
+    e.write("{}\n".format(str(NEXT_PAYMENT_ID)))
+    e.write("{}\n".format(str(NEXT_RENTAL_ID)))
+
+    e.close()
+
+    while True:
+        Continue = input("Press Enter to Continue")
+        if fV.EmptyVal(Continue) is True:
+            main()
+
+
+def view_defaults_file():
+
+
+    global NEXT_TRANS_NUM, NEXT_DRIVER_NUM, MONTH_STAND_FEE, DAY_RENT_FEE, WEEK_RENT_FEE, HST_RATE, NEXT_PAYMENT_ID
+
+    print("            HAB Taxi Service")
+    print("            ~~~~~~~~~~~~~~~~")
+    print("             Default Values")
+    print("----------------------------------------------")
+    print(f" Next transaction ID:              {NEXT_TRANS_NUM:>10s}")
+    print(f" Next Payment ID:                  {NEXT_PAYMENT_ID:>10s}")
+    print(f" Next driver ID:                   {NEXT_DRIVER_NUM:<10}")
+    print("----------------------------------------------")
+    print(f" Monthly stand fee:                {fV.FDollar2(MONTH_STAND_FEE):<10}")
+    print(f" Daily rental fee:                 {fV.FDollar2(DAY_RENT_FEE):<10}")
+    print(f" Weekly rental fee:                {fV.FDollar2(WEEK_RENT_FEE):<10}")
+    print(" HST rate: {:<10}   ".format(str(HST_RATE)))
+    print("----------------------------------------------")
+
+    d = open("Defaults.dat", "w")
+
+    d.write("{}\n".format(str(NEXT_TRANS_NUM)))
+    d.write("{}\n".format(str(NEXT_DRIVER_NUM)))
+    d.write("{}\n".format(str(MONTH_STAND_FEE)))
+    d.write("{}\n".format(str(DAY_RENT_FEE)))
+    d.write("{}\n".format(str(WEEK_RENT_FEE)))
+    d.write("{}\n".format(str(HST_RATE)))
+    d.write("{}\n".format(str(NEXT_PAYMENT_ID)))
+    d.write("{}\n".format(str(NEXT_RENTAL_ID)))
+
+    d.close()
+
+    while True:
+        Continue = input("Press enter to go back to the main menu.")
+        if fV.EmptyVal(Continue) is True:
+            main()
 
 
 def record_employee_payment():
@@ -110,6 +279,7 @@ def record_employee_payment():
     p.write("{}\n".format(str(WEEK_RENT_FEE)))
     p.write("{}\n".format(str(HST_RATE)))
     p.write("{}\n".format(str(NEXT_PAYMENT_ID)))
+    p.write("{}\n".format(str(NEXT_RENTAL_ID)))
 
     p.close()
 
@@ -232,7 +402,7 @@ def new_driver():
     e.write("{}, ".format(StAdd))
     e.write("{}, ".format(PhoneNum))
     e.write("{}, ".format(LicenseNum))
-    e.write("{}, ".format(ExpiryDate))
+    e.write("{}, ".format(ExpDate))
     e.write("{}, ".format(InsurCompany))
     e.write("{}, ".format(PolicyNum))
     e.write("{}, ".format(OwnCar))
@@ -253,6 +423,7 @@ def new_driver():
     e.write("{}\n".format(str(WEEK_RENT_FEE)))
     e.write("{}\n".format(str(HST_RATE)))
     e.write("{}\n".format(str(NEXT_PAYMENT_ID)))
+    e.write("{}\n".format(str(NEXT_RENTAL_ID)))
 
     e.close()
 
@@ -281,9 +452,10 @@ def main():
     print("8. Your report -- (add description here)")
     print("9. Quit Program.")
 
-    Ans = input("Enter choice (1-9): ")
+
 
     while True:
+        Ans = input("Enter choice (1-9): ")
         # Option 1, 2 OR 3
         if Ans == "1":
             new_driver()
@@ -293,7 +465,7 @@ def main():
             print("Unavailable")
         # Option 4
         elif Ans == "4":
-            print("Unavailable")
+            rental_tracker()
         # Option 5
         elif Ans == "5":
             record_employee_payment()
@@ -304,7 +476,7 @@ def main():
             print("Unavailable")
         # Option 8
         elif Ans == "8":
-            print("Unavailable")
+            view_defaults_file()
 
         elif Ans == "9":
             quit()
